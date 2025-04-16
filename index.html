@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <link rel="icon" type="image/png" href="img/troll.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Ceviche+One&family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
+    <title>Grott äventyret</title>
+    
+    <style>
+
+        body {
+            font-family: "Ceviche One", sans-serif;
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        .game-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background-image: url('img/kalkgrotta.png');
+            background-size: cover; 
+            background-position: center; 
+            background-repeat: no-repeat;
+            margin: 0;
+            padding: 0;
+            overflow: hidden; 
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            align-items: center;
+        }
+
+        @keyframes rotateBackAndForth {
+            0% {
+                transform: rotate(0deg);
+            }
+            25% {
+                transform: rotate(15deg);
+            }
+            50% {
+                transform: rotate(0deg);
+            }
+            75% {
+                transform: rotate(-15deg);
+            }
+            100% {
+                transform: rotate(0deg);
+            }
+        }
+
+        @keyframes trollWiggle {
+            0% {
+                transform: rotate(0deg);
+            }
+            25% {
+                transform: rotate(15deg);
+            }
+            50% {
+                transform: rotate(0deg);
+            }
+            75% {
+                transform: rotate(-15deg);
+            }
+            100% {
+                transform: rotate(0deg);
+            }
+        }
+
+        @keyframes infinityMotion {
+            0% {
+                transform: translate(-50%, -50%) translateX(200px) translateY(0px) rotate(0deg);
+            }
+            25% {
+                transform: translate(-50%, -50%) translateX(100px) translateY(-100px) rotate(45deg);
+            }
+            50% {
+                transform: translate(-50%, -50%) translateX(-200px) translateY(0px) rotate(180deg);
+            }
+            75% {
+                transform: translate(-50%, -50%) translateX(-100px) translateY(100px) rotate(225deg);
+            }
+            100% {
+                transform: translate(-50%, -50%) translateX(200px) translateY(0px) rotate(360deg);
+            }
+        }
+
+        @keyframes blackoutWiggle {
+            0% {
+                transform: rotate(0deg);
+            }
+            25% {
+                transform: rotate(5deg);
+            }
+            50% {
+                transform: rotate(0deg);
+            }
+            75% {
+                transform: rotate(-5deg);
+            }
+            100% {
+                transform: rotate(0deg);
+            }
+        }
+
+        .circle {
+            background-color: #9c5e09; /* Blå färg som liknar sten */
+            border-radius: 50%; /* Gör dem runda */
+            position: absolute; /* Placera dem slumpmässigt */
+            background-color: rgba(240, 248, 255, 0);
+            box-shadow: none;
+            cursor: pointer;
+            margin: 0px;
+            z-index: 998;
+            transition: transform 0.5s ease; /* Smidig animation vid hover */
+        }
+
+        .circle:hover {
+            transform: scale(1.1); /* Gör stenen lite större vid hover */
+        }
+
+        .circle.disappear {
+            opacity: 0;
+            transform: scale(0.5);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+
+        .circle.hacked {
+            transform: translateY(0) scale(0.8); 
+            transition: transform 0.3s ease; 
+        }
+
+        .message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            margin: 0;
+            font-size: 2em;
+            color: green;
+            text-align: center;
+            z-index: 1001; 
+            display: none; 
+            background-color: rgba(0, 0, 0, 0.6); 
+            padding: 20px 40px; 
+            border: 2px solid rgba(255, 255, 255, 0.8); 
+            border-radius: 20px; 
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); 
+        }
+
+        .blackout-curtain {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 1); 
+            background-image: none; 
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: 600px;
+            z-index: 1000; 
+            transition: opacity 2s ease, background-image 1s ease 2s; 
+            opacity: 1; 
+        }
+
+        .blackout-curtain.fade-in {
+            opacity: 1;
+        }
+
+        .blackout-curtain.fade-out {
+            opacity: 0;
+        }
+
+        .spotlight-button {
+            position: fixed;
+            bottom: -70px;
+            right: -70px;
+            height: 170px;
+            width: 170px;
+            background-image: url('img/ficklampa.png');
+            background-size: 50%;
+            background-repeat: no-repeat;
+            background-position-y: 20px;
+            background-position-x: 10px;
+            background-color: rgba(255, 255, 255, 0.699);
+            border: none;
+            border-radius: 100%;
+            cursor: pointer;
+            z-index: 999; 
+        }
+
+        .spotlight {
+            position: absolute;
+            width: 500px; 
+            height: 500px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 255, 200, 0.6) 20%, rgba(255, 255, 150, 0.3) 60%, rgba(255, 255, 150, 0) 100%);
+            pointer-events: none;
+            z-index: 1000; 
+            display: none; 
+            transform: translate(-50%, -50%); 
+        }
+
+        .counter {
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            font-size: 1.5em;
+            color: white;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 10px 20px;
+            border-radius: 5px;
+            z-index: 999; 
+        }
+
+        .speech-bubble {
+            position: absolute;
+            bottom: 100%; 
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(255, 255, 255, 0.9);
+            color: black;
+            padding: 10px 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            font-size: 1em;
+            text-align: center;
+            z-index: 2000; 
+            white-space: nowrap;
+        }
+
+        .speech-bubble::after {
+            content: '';
+            position: absolute;
+            bottom: -10px; 
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            z-index: 1999;
+            border-top: 10px solid rgba(255, 255, 255, 0.9); 
+        }
+
+        .snail-square {
+            position: absolute;
+            bottom: 0;
+            right: 0; /* Starta från botten höger */
+            width: 120px;
+            height: 120px;
+            background-color: rgba(0, 128, 0, 0);
+            background-image: url('img/snigel.png');
+            background-size: cover;
+            z-index: 999;
+            display: none;
+            pointer-events: auto;
+        }
+
+        .snail-speech-bubble {
+            position: absolute;
+            bottom: 100%; 
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(255, 255, 255, 0.9);
+            color: black;
+            padding: 10px 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            font-size: 1em;
+            text-align: center;
+            z-index: 2000;
+            white-space: nowrap;
+        }
+
+        .snail-speech-bubble::after {
+            content: '';
+            position: absolute;
+            bottom: -10px; /* Placera triangeln under pratbubblan */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-top: 10px solid rgba(255, 255, 255, 0.9); /* Matcha bakgrundsfärgen */
+        }
+        .snailBubble {
+            position: absolute;
+            bottom: 100%; 
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(255, 255, 255, 0.9);
+            color: black;
+            padding: 10px 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            font-size: 1em;
+            text-align: center;
+            z-index: 2000;
+            white-space: nowrap;
+        }
+
+        .snailBubble::after {
+            content: '';
+            position: absolute;
+            bottom: -10px; /* Placera triangeln under pratbubblan */
+            left: 10%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-top: 10px solid rgba(255, 255, 255, 0.9); /* Matcha bakgrundsfärgen */
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <div class="content">
+        <div class="game-container" id="gameContainer">
+            <h1 style="text-align: center;">Hitta Trollet!</h1>
+        </div>
+        <div class="screen-filter"></div>
+        <div class="message" id="message"></div>
+        <div class="blackout-curtain" id="blackoutCurtain"></div>
+        <button class="spotlight-button" id="spotlightButton"></button>
+        <div class="spotlight" id="spotlight"></div>
+        <div class="counter" id="counter">Troll hittade: 0</div>
+    </div>
+
+    <script>
+
+        const gameContainer = document.getElementById('gameContainer');
+        const message = document.getElementById('message');
+        let trollCounter = 0;
+        let wiggleTimeout; 
+        let currentWigglingStone = null;
+        
+        function createCircles() {
+            gameContainer.innerHTML = '';
+
+            const containerWidth = gameContainer.offsetWidth;
+            const containerHeight = gameContainer.offsetHeight;
+
+            for (let i = 0; i < 500; i++) {
+                const circle = document.createElement('div');
+                circle.classList.add('circle');
+
+                const size = Math.random() * 80 + 30; 
+                circle.style.width = `${size}px`;
+                circle.style.height = `${size}px`;
+
+                let randomX = Math.random() * (containerWidth - size); 
+                let randomY = Math.random() * (containerHeight - size); 
+
+                circle.style.left = `${randomX}px`;
+                circle.style.top = `${randomY}px`;
+                circle.style.rotate = `${Math.random() * 360}deg`;
+                circle.style.zIndex = "998"; 
+                circle.style.backgroundImage = "url('img/sten.png')";
+                circle.style.backgroundSize = "cover";
+                circle.style.backgroundPosition = "center";
+                circle.style.zIndex = "1";
+                circle.style.transition = "transform 0.3s ease, left 0.3s ease, top 0.3s ease"; // Smidig animation
+                circle.style.animation = "rotateBackAndForth 0.5s ease infinite";
+
+                circle.addEventListener('click', () => {
+
+                    circle.classList.add('hacked');
+
+                    setTimeout(() => {
+                        circle.classList.remove('hacked');
+                        circle.style.transform = "translateY(0) scale(2)"; 
+
+                        circle.style.backgroundImage = "url('img/kluven_sten.png')"; 
+                        circle.style.backgroundSize = "cover";
+                        circle.style.backgroundPosition = "center";
+                        
+                        setTimeout(() => {
+                            circle.classList.add('disappear');
+                        }, 300);
+
+                        
+                        setTimeout(() => {
+                            circle.remove();
+                        }, 500);
+                    }, 300); 
+
+                    const troll = document.querySelector('.troll');
+                    if (troll) {
+                        const circleRect = circle.getBoundingClientRect();
+                        const trollRect = troll.getBoundingClientRect();
+
+                        // Kontrollera om trollet överlappar stenen
+                        if (
+                            circleRect.left < trollRect.right &&
+                            circleRect.right > trollRect.left &&
+                            circleRect.top < trollRect.bottom &&
+                            circleRect.bottom > trollRect.top
+                        ) {
+                            message.innerHTML = "<p>Trollet är nära<br>Fånga han när du får syn på honom</p>";
+                            message.style.color = "green";
+                            
+                        } else {
+                            message.textContent = "Inget här! Försök igen.";
+                            message.style.color = "red";
+                        }
+
+                        
+                        message.style.display = 'block';
+
+                        
+                        setTimeout(() => {
+                            message.style.display = 'none';
+                        }, 3000);
+                    }
+                });
+
+                gameContainer.appendChild(circle);
+            }
+        }
+
+        function createTroll() {
+            const oldTroll = document.querySelector('.troll');
+            if (oldTroll) {
+                oldTroll.remove();
+            }
+
+            const containerWidth = gameContainer.offsetWidth;
+            const containerHeight = gameContainer.offsetHeight;
+
+            const circle = document.createElement('div');
+            circle.classList.add('troll', 'circle');
+
+            const size = Math.random() * 30 + 20;
+            circle.style.width = `${size}px`;
+            circle.style.height = `${size}px`;
+
+            const randomX = Math.random() * (containerWidth - size);
+            const randomY = Math.random() * (containerHeight - size);
+
+            circle.style.left = `${randomX}px`;
+            circle.style.top = `${randomY}px`;
+
+            circle.style.backgroundImage = "url('img/troll.png')";
+            circle.style.backgroundSize = "cover";
+            circle.style.backgroundPosition = "center";
+            circle.style.transition = "left 0.5s ease, top 0.5s ease"; 
+            circle.style.zIndex = "1";
+
+            circle.addEventListener('click', () => {
+                trollCounter++;
+
+                const counter = document.getElementById('counter');
+                counter.textContent = `Troll hittade: ${trollCounter}`;
+
+                const speechBubble = document.createElement('div');
+                speechBubble.classList.add('speech-bubble');
+                speechBubble.textContent = "Du Fick mig nästan! försök hitta mig igen! 😄";
+
+                speechBubble.style.zIndex = "2000";
+
+                circle.appendChild(speechBubble);
+                
+                stopTrollWiggle();
+                stopStoneWiggle();
+
+                // Flytta trollet flera gånger baserat på trollCounter
+                let moves = trollCounter + 1; // Antal gånger trollet ska flytta sig
+
+                // Lägg till en fördröjning på 3 sekunder innan flyttsekvensen startar
+                setTimeout(() => {
+                    moveTroll(moves);
+                }, 3000);
+
+                // Ta bort pratbubblan efter 3 sekunder
+                setTimeout(() => {
+                    speechBubble.remove();
+                }, 3000);
+            })
+
+            // Lägg till trollet i spelområdet
+            gameContainer.appendChild(circle);
+
+            // Göm trollet delvis bakom en slumpmässig cirkel vid start
+            hideTrollBehindCircle(circle);
+        }
+
+        function hideTrollBehindCircle(troll) {
+            const circles = document.querySelectorAll('.circle:not(.troll)');
+            if (circles.length > 0) {
+                const randomCircle = circles[Math.floor(Math.random() * circles.length)];
+
+                // Stoppa skakningen på alla stenar
+                circles.forEach(circle => {
+                    circle.style.animation = ""; // Ta bort eventuell tidigare animation
+                });
+
+                // Placera trollet delvis bakom den slumpmässiga cirkeln
+                const circleRect = randomCircle.getBoundingClientRect();
+                const trollRect = troll.getBoundingClientRect();
+
+                const offsetX = (circleRect.width / 2) - (trollRect.width / 4); // Flytta trollet delvis till höger
+                const offsetY = (circleRect.height / 2) - (trollRect.height / 4); // Flytta trollet delvis nedåt
+
+                troll.style.left = `${circleRect.left - gameContainer.offsetLeft + offsetX}px`;
+                troll.style.top = `${circleRect.top - gameContainer.offsetTop + offsetY}px`;
+
+                randomCircle.style.zIndex = "2"; // Placera cirkeln framför trollet
+                troll.style.zIndex = "1"; // Se till att trollet är bakom
+
+                // Starta skakningen på den nya stenen efter 5 sekunder
+                setTimeout(() => {
+                    randomCircle.style.animation = "rotateBackAndForth 0.5s ease infinite";
+                    currentWigglingStone = randomCircle; // Uppdatera referensen till den nya stenen
+                }, 15000); // Fördröjning på 5 sekunder
+            }
+        }
+
+        function startTrollWiggle() {
+            const troll = document.querySelector('.troll');
+            if (troll) {
+                troll.style.animation = "trollWiggle 0.5s ease infinite"; // Lägg till vickningsanimation
+            }
+        }
+
+        function stopTrollWiggle() {
+            const troll = document.querySelector('.troll');
+            if (troll) {
+                troll.style.animation = ""; // Ta bort vickningsanimationen
+            }
+        }
+
+        function startStoneWiggle() {
+            const troll = document.querySelector('.troll');
+            if (troll) {
+                const circles = document.querySelectorAll('.circle:not(.troll)');
+
+                // Ta bort vickningsanimation från alla stenar
+                circles.forEach(circle => {
+                    circle.style.animation = ""; // Ta bort eventuell tidigare animation
+                });
+
+                // Om ingen sten överlappar trollet, välj en slumpmässig sten
+                const randomCircle = circles[Math.floor(Math.random() * circles.length)];
+                randomCircle.style.animation = "rotateBackAndForth 0.5s ease infinite";
+                currentWigglingStone = randomCircle; // Uppdatera referensen
+            }
+        }
+
+        function stopStoneWiggle() {
+            // Stoppa vickningen på den nuvarande stenen
+            if (currentWigglingStone) {
+                currentWigglingStone.style.animation = ""; // Ta bort vickningsanimationen
+                currentWigglingStone = null; // Återställ referensen
+            }
+        }
+
+        function handleTrollFound() {
+            stopStoneWiggle();
+            setTimeout(() => {
+                startStoneWiggle();
+            }, 20000); 
+        }
+
+        function moveTroll(times) {
+            if (times === 0) {
+                startTrollWiggle(); // Starta vickningen efter sista flytten
+                return;
+            }
+
+            const troll = document.querySelector('.troll');
+            if (troll) {
+                const containerWidth = gameContainer.offsetWidth;
+                const containerHeight = gameContainer.offsetHeight;
+
+                const newX = Math.random() * (containerWidth - troll.offsetWidth);
+                const newY = Math.random() * (containerHeight - troll.offsetHeight);
+
+                troll.style.left = `${newX}px`;
+                troll.style.top = `${newY}px`;
+
+                hideTrollBehindCircle(troll);
+            }
+
+            // Flytta trollet igen efter en kort fördröjning
+            setTimeout(() => moveTroll(times - 1), 500); 
+        }
+
+        setTimeout(startStoneWiggle, 5000);
+
+        wiggleTimeout = setTimeout(startTrollWiggle, 10000);
+
+        stopTrollWiggle();
+
+        createCircles(); 
+        createTroll(); 
+        
+        const blackoutCurtain = document.getElementById('blackoutCurtain');
+
+        function startBlackoutWiggle() {
+            blackoutCurtain.style.animation = "blackoutWiggle 0.5s ease infinite";
+        }
+
+        function stopBlackoutWiggle() {
+            blackoutCurtain.style.animation = "";
+        }
+
+        // Exempel: Starta vickningen efter 2 sekunder och stoppa efter 10 sekunder
+        setTimeout(startBlackoutWiggle, 2000);
+        setTimeout(stopBlackoutWiggle, 10000);
+
+        setTimeout(() => {
+            blackoutCurtain.style.backgroundImage = "url('img/grott_äventyret.png')";
+            blackoutCurtain.classList.add('fade-in'); 
+        }, 2000); 
+
+
+        setTimeout(() => {
+            blackoutCurtain.classList.remove('fade-in');
+            blackoutCurtain.classList.add('fade-out');
+
+            setTimeout(() => {
+                blackoutCurtain.style.display = 'none';
+            }, 4000); // Matcha fade-out-durationen
+        }, 4000); // Håll blackout-curtain synlig i totalt 5 sekunder
+
+        setTimeout(() => {
+            blackoutCurtain.style.opacity = '0';
+        }, 4000);
+
+        // Spotlight logik
+        const spotlightButton = document.getElementById('spotlightButton');
+        const spotlight = document.getElementById('spotlight');
+
+        spotlightButton.addEventListener('click', () => {
+            const troll = document.querySelector('.troll');
+            if (troll) {
+                const trollRect = troll.getBoundingClientRect();
+
+                // Placera spotlighten initialt över trollet
+                spotlight.style.left = `${trollRect.left + trollRect.width / 2}px`;
+                spotlight.style.top = `${trollRect.top + trollRect.height / 2}px`;
+                spotlight.style.display = 'block'; // Visa spotlighten
+
+                // Lägg till animation för spotlighten
+                spotlight.style.animation = "infinityMotion 5s linear infinite";
+
+                // Dölj spotlighten efter 10 sekunder
+                setTimeout(() => {
+                    spotlight.style.display = 'none';
+                    spotlight.style.animation = ""; // Återställ animationen
+                }, 5000);
+            }
+        });
+
+        handleTrollFound();
+
+        const snailSquare = document.createElement('div');
+        snailSquare.classList.add('snail-square');
+        gameContainer.appendChild(snailSquare);
+
+        function adjustSpeechBubblePosition(speechBubble, parentElement) {
+            const bubbleRect = speechBubble.getBoundingClientRect();
+            const containerRect = gameContainer.getBoundingClientRect();
+
+            if (bubbleRect.left < containerRect.left) {
+                speechBubble.style.left = '0'; 
+                speechBubble.style.transform = "translateX(0)";
+            }
+
+            if (bubbleRect.right > containerRect.right) {
+                speechBubble.style.left = 'auto';
+                speechBubble.style.right = '0'; 
+                speechBubble.style.transform = "translateX(0)"; 
+            }
+        }
+
+        setTimeout(() => {
+    const snail = snailSquare;
+    snail.style.display = 'block';
+ 
+    // Startposition
+    snail.style.right = '0';
+    snail.style.left = 'auto';
+    snail.style.transition = 'right 4s linear';
+ 
+    // Pratbubbla i x sekunder
+    function showBubble(text, duration, callback) {
+        const bubble = document.createElement('div');
+        bubble.classList.add('snail-speech-bubble');
+        bubble.textContent = text;
+        snail.appendChild(bubble);
+        adjustSpeechBubblePosition(bubble, snail);
+ 
+        setTimeout(() => {
+            bubble.remove();
+            if (callback) callback();
+        }, duration);
+    }
+ 
+    // 1
+    setTimeout(() => {
+        snail.style.right = '25%';
+ 
+        // 2
+        setTimeout(() => {
+            showBubble("Hej! Jag heter Gary och jag är den hjälpsamma snabba snigeln!", 7000, () => {
+                // Första pratbubblan
+                setTimeout(() => {
+                    showBubble("Vill du hjälpa mig hitta min kompis Trollis? om du behöver lite hjälp så tryck på ficklampan", 7000, () => {
+                        // Andra pratbubblan
+                        showBubble("Han är någonstans i denna kalkgrotta, förstör en sten genom att klicka på den", 7000, () => {
+                            // tredje pratbubblan
+                            snail.style.transition = 'right 6s linear';
+                            snail.style.right = 'calc(100% - 120px)';
+ 
+                            // Vänder
+                        setTimeout(() => {
+                            snail.style.transform = 'scaleX(-1)';
+                        }, 6000);
+                        });
+                    });
+                }, 2000);
+            });
+        }, 5000);
+    }, 100);
+}, 7000);
+
+    const randomFacts = [
+        "Visste du att kalksten är en sedimentär bergart som bildas av döda organismer?",
+        "Kalkgrottor kan vara hem för många olika djurarter!",
+        "Troll är kända för att vara skygga och sällan ses av människor.",
+        "Kalkgrottor kan vara mycket gamla, vissa är miljontals år gamla!",
+        "Visste du att det finns över 3000 kända kalkgrottor i Sverige?",
+        "Kalksten kan användas för att göra cement och glas!"
+    ];
+
+    function showRandomFact() {
+        const randomIndex = Math.floor(Math.random() * randomFacts.length); 
+        const randomFact = randomFacts[randomIndex]; 
+
+        const bubble1 = document.createElement('div');
+        bubble1.classList.add('snailBubble');
+        bubble1.textContent = randomFact;
+
+        snailSquare.appendChild(bubble1);
+
+        adjustSpeechBubblePosition(bubble1, snailSquare);
+
+        bubble1.style.transform = 'scaleX(-1)';
+
+        bubble1.style.right = 'auto';
+        bubble1.style.left = '-400px';
+
+        setTimeout(() => {
+            bubble1.remove();
+        }, 6000);
+    }
+
+    function startRandomFacts() {
+        setInterval(() => {
+            const randomDelay = Math.random() * 15000 + 25000; 
+            setTimeout(() => {
+                showRandomFact();
+            }, randomDelay);
+        }, 20000); 
+    }
+    startRandomFacts();
+
+</script>
+</body>
+</html>
